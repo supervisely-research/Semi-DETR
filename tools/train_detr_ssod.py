@@ -26,8 +26,10 @@ warnings.filterwarnings('ignore')
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
-    parser.add_argument("config", help="train config file path")
-    parser.add_argument("--work-dir", help="the dir to save logs and models")
+    parser.add_argument("config", help="train config file path",
+                        default="configs/detr_ssod/detr_ssod_dino_detr_r50_custom.py")
+    parser.add_argument("--work-dir", help="the dir to save logs and models",
+                        default="output")
     parser.add_argument("--resume-from", help="the checkpoint file to resume from")
     parser.add_argument(
         "--no-validate",
@@ -157,7 +159,7 @@ def main():
     meta["config"] = cfg.pretty_text
     # log some basic info
     logger.info(f"Distributed training: {distributed}")
-    logger.info(f"Config:\n{cfg.pretty_text}")
+    # logger.info(f"Config:\n{cfg.pretty_text}")
 
     # set random seeds
     if args.seed is not None:
@@ -186,6 +188,7 @@ def main():
         )
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
+    logger.info(f"Classes: {model.CLASSES}")
     train_detector(
         model,
         datasets,

@@ -1,0 +1,10 @@
+# .gitignore python files:
+*.py[cod]
+__pycache__/
+# eggs:
+*.egg-info/
+*.egg
+build/
+/data
+/data2
+/output
