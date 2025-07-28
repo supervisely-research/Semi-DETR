@@ -808,7 +808,8 @@ class DinoDetrSSOD(MultiSteamDetector):
 
     @force_fp32(apply_to=["a", "b"])
     def _get_trans_mat(self, a, b):
-        return [bt @ at.inverse() for bt, at in zip(b, a)]
+        device = a[0].device
+        return [bt @ at.cpu().inverse().to(device) for bt, at in zip(b, a)]
 
     def extract_student_info(self, img, img_metas, **kwargs):
         """Only get some data info of student model
