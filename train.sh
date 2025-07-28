@@ -1,0 +1,1 @@
+python -m torch.distributed.launch --nproc_per_node=1 --master_port 29500 tools/train_detr_ssod.py configs/detr_ssod/detr_ssod_dino_detr_r50_custom.py --launcher pytorch

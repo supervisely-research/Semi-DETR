@@ -7,26 +7,26 @@ model = dict(
 )
 
 data = dict(
-    samples_per_gpu=6,
-    workers_per_gpu=6,
+    samples_per_gpu=2,
+    workers_per_gpu=2,
     train=dict(
         sup=dict(
             type="CocoDataset",
-            ann_file="data/ssl_split_250_1000/labeled.json",
+            ann_file="data/insulator-defect-detection/ssl_split_250_1000/labeled.json",
             img_prefix="data/insulator-defect-detection/sly_project/train/img",
             classes=("broken", "insulator", "pollution-flashover"),
 
         ),
         unsup=dict(
             type="CocoDataset",
-            ann_file="data/ssl_split_250_1000/unlabeled.json",
+            ann_file="data/insulator-defect-detection/ssl_split_250_1000/unlabeled.json",
             img_prefix="data/insulator-defect-detection/sly_project/train/img",
             classes=("broken", "insulator", "pollution-flashover"),
         ),
     ),
     sampler=dict(
         train=dict(
-            type="DistributedGroupSemiBalanceSampler",
+            type="SemiBalanceSampler",
             sample_ratio=[1, 4],
             by_prob=True,
         )
@@ -54,9 +54,9 @@ custom_hooks = [
 ]
 
 runner = dict(_delete_=True, type="IterBasedRunner", max_iters=20000)
-evaluation = dict(type="SubModulesDistEvalHook", interval=1000)
+evaluation = dict(type="SubModulesDistEvalHook", interval=50)
 lr_config = dict(step=[16000, 20000])
-checkpoint_config = dict(by_epoch=False, interval=1000, max_keep_ckpts=5, create_symlink=False)
+checkpoint_config = dict(by_epoch=False, interval=50, max_keep_ckpts=5, create_symlink=False)
 
 work_dir = "output/split_250_1000"
 log_config = dict(
