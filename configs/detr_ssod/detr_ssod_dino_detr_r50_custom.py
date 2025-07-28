@@ -12,14 +12,14 @@ data = dict(
     train=dict(
         sup=dict(
             type="CocoDataset",
-            ann_file="data2/ssl_split/labeled.json",
+            ann_file="data/ssl_split_250_1000/labeled.json",
             img_prefix="data/insulator-defect-detection/sly_project/train/img",
             classes=("broken", "insulator", "pollution-flashover"),
 
         ),
         unsup=dict(
             type="CocoDataset",
-            ann_file="data2/ssl_split/unlabeled.json",
+            ann_file="data/ssl_split_250_1000/unlabeled.json",
             img_prefix="data/insulator-defect-detection/sly_project/train/img",
             classes=("broken", "insulator", "pollution-flashover"),
         ),
