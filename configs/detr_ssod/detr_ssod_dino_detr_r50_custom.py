@@ -7,8 +7,8 @@ model = dict(
 )
 
 data = dict(
-    samples_per_gpu=2,
-    workers_per_gpu=2,
+    samples_per_gpu=3,
+    workers_per_gpu=3,
     train=dict(
         sup=dict(
             type="CocoDataset",
@@ -24,10 +24,20 @@ data = dict(
             classes=("broken", "insulator", "pollution-flashover"),
         ),
     ),
+    val=dict(
+            ann_file="data/insulator-defect-detection/coco_ann/val/annotations/coco_instances.json",
+            img_prefix="data/insulator-defect-detection/sly_project/val/img",
+            classes=("broken", "insulator", "pollution-flashover"),
+        ),
+    test=dict(
+            ann_file="data/insulator-defect-detection/coco_ann/test/annotations/coco_instances.json",
+            img_prefix="data/insulator-defect-detection/sly_project/test/img",
+            classes=("broken", "insulator", "pollution-flashover"),
+        ),
     sampler=dict(
         train=dict(
             type="SemiBalanceSampler",
-            sample_ratio=[1, 4],
+            sample_ratio=[1, 2],
             by_prob=True,
         )
     ),
@@ -40,7 +50,7 @@ semi_wrapper = dict(
         use_teacher_proposal=False,
         pseudo_label_initial_score_thr=0.4,
         min_pseduo_box_size=0,
-        unsup_weight=4.0,
+        unsup_weight=3.0,
         aug_query=False,
         
     ),
@@ -53,12 +63,12 @@ custom_hooks = [
     dict(type='StepRecord', normalize=False),
 ]
 
-runner = dict(_delete_=True, type="IterBasedRunner", max_iters=20000)
-evaluation = dict(type="SubModulesDistEvalHook", interval=50)
-lr_config = dict(step=[16000, 20000])
-checkpoint_config = dict(by_epoch=False, interval=50, max_keep_ckpts=5, create_symlink=False)
+runner = dict(_delete_=True, type="IterBasedRunner", max_iters=50000)
+evaluation = dict(type="SubModulesDistEvalHook", interval=1000)
+lr_config = dict(step=[35000, 45000])
+checkpoint_config = dict(by_epoch=False, interval=4000, max_keep_ckpts=5, create_symlink=False)
 
-work_dir = "output/split_250_1000"
+work_dir = "output/split_250_1000/run_2_bs_sr_weight"
 log_config = dict(
     interval=50,
     hooks=[

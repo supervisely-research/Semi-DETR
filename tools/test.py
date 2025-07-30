@@ -26,6 +26,7 @@ def parse_args():
         help="the directory to save the file containing evaluation metrics",
     )
     parser.add_argument("--out", help="output result file in pickle format")
+    parser.add_argument("--load-results", help="load result file in pickle format to evaluate")
     parser.add_argument(
         "--fuse-conv-bn",
         action="store_true",
@@ -184,7 +185,8 @@ def main():
         cfg.work_dir = args.work_dir
         mmcv.mkdir_or_exist(osp.abspath(args.work_dir))
         timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-        json_file = osp.join(args.work_dir, f"eval_{timestamp}.json")
+        step_info = args.checkpoint.split("/")[-1][:-4]
+        json_file = osp.join(args.work_dir, f"eval_{step_info}_{timestamp}.json")
     elif cfg.get("work_dir", None) is None:
         cfg.work_dir = osp.join(
             "./work_dirs", osp.splitext(osp.basename(args.config))[0]
@@ -228,34 +230,41 @@ def main():
     else:
         model.CLASSES = dataset.CLASSES
 
-    if not distributed:
-        model = MMDataParallel(model, device_ids=[0])
-        # Note: check whether need to do switch the NMS operation for the two stage training
-        if is_stage_wise:
-            # import ipdb;ipdb.set_trace()
-            # check wether use the NMS to evaluate the performance
-            assert hasattr(model.module.teacher.bbox_head, 'warm_up_step'), \
-                "Two phase ssod methods need has the warm_up_step attr!"
-            outputs = single_gpu_test(
-                model, data_loader, args.show, args.show_dir, args.show_score_thr, curr_step=eval(step_info.split("_")[-1])
-            )
-        else:
-            outputs = single_gpu_test(
-                    model, data_loader, args.show, args.show_dir, args.show_score_thr,
+    if not args.load_results:
+        if not distributed:
+            model = MMDataParallel(model, device_ids=[0])
+            # Note: check whether need to do switch the NMS operation for the two stage training
+            if is_stage_wise:
+                # import ipdb;ipdb.set_trace()
+                # check wether use the NMS to evaluate the performance
+                assert hasattr(model.module.teacher.bbox_head, 'warm_up_step'), \
+                    "Two phase ssod methods need has the warm_up_step attr!"
+                outputs = single_gpu_test(
+                    model, data_loader, args.show, args.show_dir, args.show_score_thr, curr_step=eval(step_info.split("_")[-1])
                 )
-    else:
-        model = MMDistributedDataParallel(
-            model.cuda(),
-            device_ids=[torch.cuda.current_device()],
-            broadcast_buffers=False,
-        )
-        if is_stage_wise:
-            # check wether use the NMS to evaluate the performance
-            assert hasattr(model.module.teacher.bbox_head, 'warm_up_step'), \
-                "Two phase ssod methods need has the warm_up_step attr!"
-            outputs = multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect, curr_step=eval(step_info.split("_")[-1]))
+            else:
+                outputs = single_gpu_test(
+                        model, data_loader, args.show, args.show_dir, args.show_score_thr,
+                    )
         else:
-            outputs = multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect)
+            model = MMDistributedDataParallel(
+                model.cuda(),
+                device_ids=[torch.cuda.current_device()],
+                broadcast_buffers=False,
+            )
+            if is_stage_wise:
+                # check wether use the NMS to evaluate the performance
+                assert hasattr(model.module.teacher.bbox_head, 'warm_up_step'), \
+                    "Two phase ssod methods need has the warm_up_step attr!"
+                outputs = multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect, curr_step=eval(step_info.split("_")[-1]))
+            else:
+                outputs = multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect)
+    else:
+        if not osp.isfile(args.load_results):
+            raise ValueError(f"load results file {args.load_results} does not exist")
+        print(f"load results from {args.load_results}")
+        with open(args.load_results, "rb") as f:
+            outputs = mmcv.load(f, file_format="pickle")
 
     rank, _ = get_dist_info()
     if rank == 0:
@@ -283,7 +292,7 @@ def main():
             print(metric)
             metric_dict = dict(config=args.config, metric=metric)
             if args.work_dir is not None and rank == 0:
-                mmcv.dump(metric_dict, json_file)
+                mmcv.dump(metric_dict, json_file, indent=4)
 
 
 if __name__ == "__main__":
