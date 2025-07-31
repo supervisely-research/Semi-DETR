@@ -68,7 +68,7 @@ evaluation = dict(type="SubModulesDistEvalHook", interval=1000)
 lr_config = dict(step=[35000, 45000])
 checkpoint_config = dict(by_epoch=False, interval=4000, max_keep_ckpts=5, create_symlink=False)
 
-work_dir = "output/split_250_1000/run_2_bs_sr_weight"
+work_dir = "output/split_250_1000/run_3"
 log_config = dict(
     interval=50,
     hooks=[
