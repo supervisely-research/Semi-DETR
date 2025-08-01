@@ -1,2 +1,2 @@
-# python tools/test.py configs/detr_ssod/detr_ssod_dino_detr_r50_custom.py output/iter_50000.pth --eval bbox --work-dir output/eval --load-results output/eval/results.pickle
-python tools/test.py configs/detr_ssod/detr_ssod_dino_detr_r50_custom.py output/iter_50000.pth --eval bbox --work-dir output/eval
+# python tools/test.py configs/detr_ssod/detr_ssod_dino_detr_r50_kanal75.py output/kanal75/split_400_2500/run_1/iter_55000.pth --eval bbox --work-dir output/kanal75/split_400_2500/run_1/eval
+python tools/test.py configs/detr_ssod/detr_ssod_dino_detr_r50_kanal75.py output/kanal75/split_400_2500/run_1/iter_50000.pth --format-only --work-dir output/kanal75/split_400_2500/run_1/eval
